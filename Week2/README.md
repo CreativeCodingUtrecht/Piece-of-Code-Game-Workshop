@@ -99,3 +99,6 @@ Nu je de HID extensie hebt toegevoegd, kun je de Micro:bit programmeren om:
 ## Verbinden via Bluetooth
 
 ## Extra: voeg meer knoppen toe met de DragonTail
+
+Je kan ook extra knoppen en sensoren aansluiten op de Micro:bit. Dit doe je met de DragonTail. Deze kun je op deze manier uitlezen:
+![Read extra pins](./read_extra_pins.png)
