@@ -9,48 +9,69 @@ from adafruit_hid.keycode import Keycode
 
 print("Hello World!")
 
-kbd = Keyboard(usb_hid.devices)
+keyboard = Keyboard(usb_hid.devices)
 
-# Pins voor 4 knoppen.
-button_pins = (board.GP0, board.GP1, board.GP2, board.GP10)
+# Pas de pinnen aan op basis van jouw bedrading.
+#
+# RP2040-Zero pinout: 
+#
+#             GP0 GP1 GP2 GP3 etc.
+#              *   *   *   *
+#              0   1   2   3   4   5   6   7   8
+#             +--------------------------------+  8
+#             |                                |  9
+#          U--|          RP2040-Zero           | 10
+#          S--|                                | 11
+#          B--|                                | 12
+#             |                                | 13
+#             +--------------------------------+ 14
+#              5V GND  3V3  29  28  27  26  15  14
+#
+buttons = [
+    digitalio.DigitalInOut(board.GP0),
+    digitalio.DigitalInOut(board.GP1),
+    digitalio.DigitalInOut(board.GP2),
+    digitalio.DigitalInOut(board.GP3),
+]
 
-# Koppel de knoppen aan pijltjestoetsen.
-# Dit kun je aanpassen naar andere toetsen als je wilt.
-button_keys = (
-    Keycode.RIGHT_ARROW,    # GP0
-    Keycode.UP_ARROW,  # GP1
-    Keycode.DOWN_ARROW,  # GP2
-    Keycode.LEFT_ARROW, # GP10
-)
-
-buttons = [digitalio.DigitalInOut(pin) for pin in button_pins]
 for button in buttons:
     button.direction = digitalio.Direction.INPUT
     button.pull = digitalio.Pull.UP
 
-# Houd bij welke toetsen op dit moment zijn ingedrukt,
-# zodat indrukken en loslaten goed werken.
-keys_pressed = [False] * len(buttons)
+
+# Zie KEYCODES.md voor de lijst met beschikbare toetsen
+keys = [
+    Keycode.RIGHT_ARROW,
+    Keycode.UP_ARROW,
+    Keycode.DOWN_ARROW,
+    Keycode.LEFT_ARROW,
+]
+
+# Houd bij welke toetsen op dit moment zijn ingedrukt.
+# Alle toetsen bij het opstarten losgelaten (False)
+keys_pressed = [False, False, False, False]
+
+
 
 print("Keyboard ready! Press buttons for arrow keys.")
 
 while True:
-    # Controleer elke knop.
-    for i, button in enumerate(buttons):
-        key = button_keys[i]
-        
+    # Loop over elke knop
+    for i in range(len(buttons)):
+        button = buttons[i]
+        key = keys[i]
+
         if not button.value:  # Knop ingedrukt (verbonden met GND)
             if not keys_pressed[i]:
                 # De toets is net ingedrukt.
-                kbd.press(key)
+                keyboard.press(key)
                 keys_pressed[i] = True
-                print(" press. Key:", key, ", pin:", button_pins[i], end="")
+                print(" press. button:", i, "key:", key, end="")
         else:  # Knop losgelaten
             if keys_pressed[i]:
                 # De toets is net losgelaten.
-                kbd.release(key)
+                keyboard.release(key)
                 keys_pressed[i] = False
-                print(" release. Key:", key, ", pin:", button_pins[i], end="")
+                print(" release. button:", i, "key:", key, end="")
 
-    # Hier kun je eventueel een kleine vertraging toevoegen tegen contactdender.
-    # Laat dit weg als je een snellere reactie wilt.
+

@@ -9,22 +9,42 @@ from hid_gamepad import Gamepad
 
 print("Hello World!")
 
-gp = Gamepad(usb_hid.devices)
+gamepad = Gamepad(usb_hid.devices)
 
-# Pins voor de knoppen. Pas dit aan op basis van jouw bedrading.
-button_pins = (board.GP15,board.GP6 )
+# Pas de pinnen aan op basis van jouw bedrading.
+#
+# RP2040-Zero pinout:
+#
+#             GP0 GP1 GP2 GP3 etc.
+#              *   *   *   *
+#              0   1   2   3   4   5   6   7   8
+#             +--------------------------------+  8
+#             |                                |  9
+#          U--|          RP2040-Zero           | 10
+#          S--|                                | 11
+#          B--|                                | 12
+#             |                                | 13
+#             +--------------------------------+ 14
+#              5V GND  3V3  29  28  27  26  15  14
+#
+buttons = [
+    digitalio.DigitalInOut(board.GP15),
+    digitalio.DigitalInOut(board.GP6),
+]
 
-# Koppel de knoppen aan de knopnummers van de gamepad.
-gamepad_buttons = (1, 2)
-
-buttons = [digitalio.DigitalInOut(pin) for pin in button_pins]
 for button in buttons:
     button.direction = digitalio.Direction.INPUT
     button.pull = digitalio.Pull.UP
 
-# Analoge joystick op GP26 (ADC0) en GP27 (ADC1).
-ax = analogio.AnalogIn(board.A3)
-ay = analogio.AnalogIn(board.A1)
+# Koppel elke knop aan een gamepad-knopnummer (1 t/m 16).
+button_numbers = [
+    1,  # GP15
+    2,  # GP6
+]
+
+# Analoge joystick. GP26 = A3, GP27 = A1
+joystick_x = analogio.AnalogIn(board.A3)
+joystick_y = analogio.AnalogIn(board.A1)
 
 
 def range_map(x, in_min, in_max, out_min, out_max):
@@ -32,20 +52,32 @@ def range_map(x, in_min, in_max, out_min, out_max):
     return (x - in_min) * (out_max - out_min) // (in_max - in_min) + out_min
 
 
+# Houd bij welke knoppen op dit moment zijn ingedrukt.
+# Alle knoppen bij het opstarten losgelaten (False)
+buttons_pressed = [False, False]
+
+print("Gamepad ready! Press buttons and move the joystick.")
+
 while True:
-    # Een knop is ingedrukt als deze naar GND getrokken wordt (.value = False).
-    for i, button in enumerate(buttons):
-        gamepad_button_num = gamepad_buttons[i]
-        if button.value:
-            gp.release_buttons(gamepad_button_num)
-            print(" release", gamepad_button_num, end="")
-        else:
-            gp.press_buttons(gamepad_button_num)
-            print(" press", gamepad_button_num, end="")
+    # Loop over elke knop
+    for i in range(len(buttons)):
+        button = buttons[i]
+        button_number = button_numbers[i]
+
+        if not button.value:  # Knop ingedrukt (verbonden met GND)
+            if not buttons_pressed[i]:
+                gamepad.press_buttons(button_number)
+                buttons_pressed[i] = True
+                print(" press. button:", i, "gamepad:", button_number, end="")
+        else:  # Knop losgelaten
+            if buttons_pressed[i]:
+                gamepad.release_buttons(button_number)
+                buttons_pressed[i] = False
+                print(" release. button:", i, "gamepad:", button_number, end="")
 
     # Zet de analoge waarde van 0-65535 om naar een joystickwaarde van -127 tot 127.
-    gp.move_joysticks(
-        x=range_map(ax.value, 0, 65535, -127, 127),
-        y=range_map(ay.value, 0, 65535, -127, 127),
+    gamepad.move_joysticks(
+        x=range_map(joystick_x.value, 0, 65535, -127, 127),
+        y=range_map(joystick_y.value, 0, 65535, -127, 127),
     )
-    print(" x", ax.value, "y", ay.value)
+    print(" x", joystick_x.value, "y", joystick_y.value, end="")

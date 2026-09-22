@@ -37,5 +37,8 @@ Selecteer het CircuitPython-apparaat in de dropdown.
 
 Selecteer daarna je CircuitPython-apparaat als host folder en open `code.py` om de code aan te passen.
 
-4. Test je gamepad
-   Op deze site kun je makkelijk je gamepad testen: https://hardwaretester.com/gamepad
+Wil je andere toetsen koppelen aan je knoppen? Bekijk het [Keycode-overzicht](./KEYCODES.md).
+
+## 4. Test je gamepad
+
+Op deze site kun je makkelijk je gamepad testen: https://hardwaretester.com/gamepad
