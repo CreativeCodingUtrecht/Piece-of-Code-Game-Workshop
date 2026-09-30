@@ -4,6 +4,7 @@
 import analogio
 import board
 import digitalio
+from digitalio import DigitalInOut
 import usb_hid
 from hid_gamepad import Gamepad
 
@@ -13,34 +14,27 @@ gamepad = Gamepad(usb_hid.devices)
 
 # Pas de pinnen aan op basis van jouw bedrading.
 #
-# RP2040-Zero pinout:
-#
 #             GP0 GP1 GP2 GP3 etc.
 #              *   *   *   *
 #              0   1   2   3   4   5   6   7   8
 #             +--------------------------------+  8
 #             |                                |  9
-#          U--|          RP2040-Zero           | 10
-#          S--|                                | 11
+#          U--|                                | 10
+#          S--|          RP2040-Zero           | 11
 #          B--|                                | 12
 #             |                                | 13
-#             +--------------------------------+ 14
+#             +--------------------------------+  14
 #              5V GND  3V3  29  28  27  26  15  14
 #
 buttons = [
-    digitalio.DigitalInOut(board.GP15),
-    digitalio.DigitalInOut(board.GP6),
+    # pin,                       button,    pressed?
+    [ DigitalInOut(board.GP15),     1,      False ],
+    [ DigitalInOut(board.GP6),      2,      False ],
 ]
 
-for button in buttons:
-    button.direction = digitalio.Direction.INPUT
-    button.pull = digitalio.Pull.UP
-
-# Koppel elke knop aan een gamepad-knopnummer (1 t/m 16).
-button_numbers = [
-    1,  # GP15
-    2,  # GP6
-]
+for pin, button_number, pressed in buttons:
+    pin.direction = digitalio.Direction.INPUT
+    pin.pull = digitalio.Pull.UP
 
 # Analoge joystick. GP26 = A3, GP27 = A1
 joystick_x = analogio.AnalogIn(board.A3)
@@ -52,27 +46,24 @@ def range_map(x, in_min, in_max, out_min, out_max):
     return (x - in_min) * (out_max - out_min) // (in_max - in_min) + out_min
 
 
-# Houd bij welke knoppen op dit moment zijn ingedrukt.
-# Alle knoppen bij het opstarten losgelaten (False)
-buttons_pressed = [False, False]
-
 print("Gamepad ready! Press buttons and move the joystick.")
 
 while True:
     # Loop over elke knop
     for i in range(len(buttons)):
-        button = buttons[i]
-        button_number = button_numbers[i]
+        pin, button_number, pressed = buttons[i]
 
-        if not button.value:  # Knop ingedrukt (verbonden met GND)
-            if not buttons_pressed[i]:
+        if not pin.value:  # Knop ingedrukt (verbonden met GND)
+            if not pressed:
+                # De knop is net ingedrukt. pressed: False -> True
                 gamepad.press_buttons(button_number)
-                buttons_pressed[i] = True
+                pressed = True
                 print(" press. button:", i, "gamepad:", button_number, end="")
         else:  # Knop losgelaten
-            if buttons_pressed[i]:
+            if pressed:
+                # De knop is net losgelaten. pressed: True -> False
                 gamepad.release_buttons(button_number)
-                buttons_pressed[i] = False
+                pressed = False
                 print(" release. button:", i, "gamepad:", button_number, end="")
 
     # Zet de analoge waarde van 0-65535 om naar een joystickwaarde van -127 tot 127.
