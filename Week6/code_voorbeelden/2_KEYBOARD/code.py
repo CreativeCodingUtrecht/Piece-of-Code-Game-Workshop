@@ -14,8 +14,9 @@ keyboard = Keyboard(usb_hid.devices)
 
 # Pas de pinnen aan op basis van jouw bedrading.
 #
-#             GP0 GP1 GP2 GP3 etc.
-#              *   *   *   *
+#                  ←   ↑   ↓   →   
+#                 GP1 GP2 GP3 GP4 etc.
+#                  *   *   *   *
 #              0   1   2   3   4   5   6   7   8
 #             +--------------------------------+  8
 #             |                                |  9
@@ -28,10 +29,10 @@ keyboard = Keyboard(usb_hid.devices)
 #
 buttons = [
     # pin,                                  key,               pressed?
-    [ DigitalInOut(board.GP0),      Keycode.RIGHT_ARROW,        False ],
-    [ DigitalInOut(board.GP1),      Keycode.UP_ARROW,           False ],
-    [ DigitalInOut(board.GP2),      Keycode.DOWN_ARROW,         False ],
-    [ DigitalInOut(board.GP3),      Keycode.LEFT_ARROW,         False ],
+    [ DigitalInOut(board.GP1),      Keycode.LEFT_ARROW,        False ],
+    [ DigitalInOut(board.GP2),      Keycode.UP_ARROW,          False ],
+    [ DigitalInOut(board.GP3),      Keycode.DOWN_ARROW,        False ],
+    [ DigitalInOut(board.GP4),      Keycode.RIGHT_ARROW,       False ],
 ]
 
 # De pinnen voor de knoppen zijn input
@@ -51,13 +52,12 @@ while True:
             if not pressed:
                 # De toets is net ingedrukt. pressed: False -> True
                 keyboard.press(key)
-                pressed = True
+                buttons[i][2] = True
                 print(" press. button:", i, "key:", key, end="")
         else:  # Knop losgelaten
             if pressed:
                 # De toets is net losgelaten. pressed: True -> False
                 keyboard.release(key)
-                pressed = False
+                buttons[i][2] = False
                 print(" release. button:", i, "key:", key, end="")
-
 
