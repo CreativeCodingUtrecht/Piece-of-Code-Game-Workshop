@@ -57,13 +57,13 @@ while True:
             if not pressed:
                 # De knop is net ingedrukt. pressed: False -> True
                 gamepad.press_buttons(button_number)
-                pressed = True
+                buttons[i][2] = True
                 print(" press. button:", i, "gamepad:", button_number, end="")
         else:  # Knop losgelaten
             if pressed:
                 # De knop is net losgelaten. pressed: True -> False
                 gamepad.release_buttons(button_number)
-                pressed = False
+                buttons[i][2] = False
                 print(" release. button:", i, "gamepad:", button_number, end="")
 
     # Zet de analoge waarde van 0-65535 om naar een joystickwaarde van -127 tot 127.
